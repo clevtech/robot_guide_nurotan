@@ -13,6 +13,9 @@ import os
 import speech_recognition as sr
 from googletrans import Translator
 from pprint import pprint
+from gtts import gTTS
+import os
+
 
 async_mode = None
 app = Flask(__name__)
@@ -120,14 +123,11 @@ def show_emotion(emotion):
 				  namespace='/test')
 
 
-def say_answer(answer, lang="ru"):
-	print('say "' + str(answer) + '"')
-	if lang == "en":
-		os.system('say -v Karen "' + str(answer) + '"')
-	else:
-		os.system('say -v Milena "' + str(answer) + '"')
-	# Send socks
-	return True
+def say_answer(answer, lang1="ru"):
+    tts = gTTS(text='Good morning', lang=lang1)
+    tts.save("good.mp3")
+    os.system("mpg321 good.mp3")
+    os.system("rm good.mp3")
 
 
 def speak():
