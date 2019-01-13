@@ -66,9 +66,6 @@ thread_lock = Lock()
 r = sr.Recognizer()
 translator = Translator()
 # Initialize OpenCV
-cap = cv2.VideoCapture(0)
-cap.set(3, 640) #WIDTH
-cap.set(4, 480) #HEIGHT
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 
@@ -91,7 +88,10 @@ def handdown(message="2", ard=bot, hand="r"):
 def recognize_face():
 	while True:
 		# ret, frame = cap.read()
+		os.system("rm 1.png")
+		os.system("fswebcam 1.png")
 		frame = cv2.imread("1.png")
+		os.system("rm 1.png")
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 		try:
