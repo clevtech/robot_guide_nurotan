@@ -4,7 +4,7 @@ gevent.monkey.patch_all()
 from threading import Lock
 from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, join_room, leave_room, \
-    close_room, rooms, disconnect
+	close_room, rooms, disconnect
 import random
 import apiai
 import json
@@ -15,8 +15,50 @@ from googletrans import Translator
 from pprint import pprint
 from gtts import gTTS
 import os
+import sys
+import glob
+import serial
+import time
+import urllib.request
 
 
+def serial_ports():
+	if sys.platform.startswith('win'):
+		ports = ['COM%s' % (i + 1) for i in range(256)]
+	elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+		# this excludes your current terminal "/dev/tty"
+		ports = glob.glob('/dev/ttyACM*')
+		print(ports)
+	elif sys.platform.startswith('darwin'):
+		ports = glob.glob('/dev/tty.usbmodem*')
+	else:
+		raise EnvironmentError('Unsupported platform')
+
+	result = ports
+	return result
+
+
+# types: Sonar - sonar arduino, Box - box controlling arduino
+# returns serial connection
+def connect():
+	arduinos = serial_ports()
+	ser = []
+	top, bot = 0, 0
+	for i in range(len(arduinos)):
+		ser.append(serial.Serial(arduinos[i], 115200))
+		time.sleep(1)
+		ser[i].write("3".encode())
+		# time.sleep(0.1)
+		types = ser[i].readline().strip().decode("utf-8")
+		print(types)
+		if types == "1":
+			bot = ser[i]
+		elif types == "0":
+			top = ser[i]
+	return bot, top
+
+
+bot, top = connect()
 async_mode = None
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'blabla'
@@ -32,14 +74,25 @@ cap.set(4, 480) #HEIGHT
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 
+def handup(message="0", ard=bot, hand="r"):
+	if hand=="l":
+		message="1"
+	ard.write(message.encode())
+	out = ard.readline().strip().decode("utf-8")
+	return out
+
+
+def handdown(message="2", ard=bot, hand="r"):
+	if hand=="l":
+		message="4"
+	ard.write(message.encode())
+	out = ard.readline().strip().decode("utf-8")
+	return out
+
+
 def recognize_face():
-
-	# TODO: тут надо прописать количество людей от ИК сенсора
-
 	while True:
 		ret, frame = cap.read()
-
-		# Our operations on the frame come here
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 		try:
@@ -124,10 +177,10 @@ def show_emotion(emotion):
 
 
 def say_answer(answer, lang1="ru"):
-    tts = gTTS(text='Good morning', lang=lang1)
-    tts.save("good.mp3")
-    os.system("mpg321 good.mp3")
-    os.system("rm good.mp3")
+	tts = gTTS(text='Good morning', lang=lang1)
+	tts.save("good.mp3")
+	os.system("mpg321 good.mp3")
+	os.system("rm good.mp3")
 
 
 def speak():
@@ -137,7 +190,9 @@ def speak():
 	while True:
 		show_emotion("Normal")
 		size, position, number = recognize_face()
+		handdown()
 		if number > 0:
+			handup()
 			open_phrase = "Для русского языка скажите привет"
 			say_answer(open_phrase)
 			say_answer("english say hello", "en")
@@ -173,16 +228,16 @@ def speak():
 
 @socketio.on('connect', namespace='/test')
 def test_connect():
-    global thread
-    with thread_lock:
-        if thread is None:
-            thread = socketio.start_background_task(target=speak)
+	global thread
+	with thread_lock:
+		if thread is None:
+			thread = socketio.start_background_task(target=speak)
 
 
 @app.route('/')
 def index():
-    return render_template('index.html', async_mode=socketio.async_mode)
+	return render_template('index.html', async_mode=socketio.async_mode)
 
 
 if __name__ == '__main__':
-    socketio.run(app, port=7777, debug=True)
+	socketio.run(app, port=7777, debug=True)
