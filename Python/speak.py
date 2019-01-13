@@ -45,7 +45,7 @@ def connect():
 	ser = []
 	bot = 0
 	for i in range(len(arduinos)):
-		ser.append(serial.Serial(arduinos[i], 115200))
+		ser.append(serial.Serial(arduinos[i], 9600))
 		time.sleep(1)
 		ser[i].write("3".encode())
 		# time.sleep(0.1)
