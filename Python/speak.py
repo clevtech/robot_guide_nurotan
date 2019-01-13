@@ -131,7 +131,7 @@ def give_answer(question):
 
 
 def listen_question(state, lang):
-	with sr.Microphone() as source:
+	with sr.Microphone(device_index=0) as source:
 		# r.adjust_for_ambient_noise(source)
 		duration = 1  # second
 		freq = 440  # Hz
