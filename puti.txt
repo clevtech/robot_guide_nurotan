@@ -1,0 +1,70 @@
+### Пути
+
+# Планшет
+192.168.8.100:7777/1/ru/
+{IP}:{PORT}/{Номер экрана}/{Язык}
+
+# Экран
+192.168.8.100:7777/disp/1/ru/
+{IP}:{PORT}/{Дисплей}/{Номер экрана}/{Язык}
+
+# Socket
+192.168.8.100:7777/1/ru/soc/
+{IP}:{PORT}/{Номер экрана}/{Язык}/{Порт}
+
+
+### json
+
+{
+  "id": 123123123, # Случайный номер
+  "ID": "2.2", # Айди самого слайда
+  "theme": "1", # Тема слайда
+	"logo": "static/image/logo.png", # Логотип в верхнем углу
+  "map": [ # Массив с областями
+    {
+      "number": "1", # Номер области (1 - астана, 17 - чимкент)
+      "ID": "2.2.1" # Его Айди
+    },
+    {
+      "number": "2",
+      "ID": "2.2.2"
+    }
+  ],
+  "content": [ # Массив с слайдами, если только 1 - значит есть только один слайд, если больше 1 - нет дочек
+    {
+      "type": "1", # 1 - картинка и текст, 2 - картинка, 3 - видео
+      "title": "Новые клиенты за сегодня",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, at!",
+			"video": "static/video/"
+    },
+    {
+      "type": "2",
+      "title": "Новые клиенты за сегодня",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, at!",
+			"video": "static/video/"
+    }
+  ],
+  "dochki": [ # Массив с дочками (кнопками в планшете)
+    {
+      "title": "Первая кнопка",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, attest2!",
+			"ID": "2.2.1" # Айди кнопки
+    },
+    {
+      "title": "Вторая кнопка",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, attest2!",
+			"ID": "2.2.2"
+    }
+  ],
+  "roditeli": [ # Родители экрана для хлебных крошек
+    {
+      "title": "Первая кнопка",
+			"ID": "2"
+    }
+  ]
+
+}

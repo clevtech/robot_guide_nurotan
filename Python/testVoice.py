@@ -1,7 +1,20 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-
+import gevent.monkey
+gevent.monkey.patch_all()
+from threading import Lock
+from flask import Flask, render_template, session, request
+from flask_socketio import SocketIO, emit, join_room, leave_room, \
+	close_room, rooms, disconnect
+import random
+import apiai
+import json
+import cv2
+import os
+import speech_recognition as sr
+from googletrans import Translator
+from pprint import pprint
+from gtts import gTTS
+import os
 import sys
 import glob
 import serial
@@ -9,41 +22,29 @@ import time
 import urllib.request
 
 
-def serial_ports():
-	if sys.platform.startswith('win'):
-		ports = ['COM%s' % (i + 1) for i in range(256)]
-	elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-		# this excludes your current terminal "/dev/tty"
-		ports = glob.glob('/dev/ttyACM*')
-		print(ports)
-	elif sys.platform.startswith('darwin'):
-		ports = glob.glob('/dev/tty.usbmodem*')
-	else:
-		raise EnvironmentError('Unsupported platform')
-
-	result = ports
-	return result
+# Initialize OpenCV
+# cap = cv2.VideoCapture(0)
+# cap.set(3, 640) #WIDTH
+# cap.set(4, 480) #HEIGHT
+face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 
 
-# types: Sonar - sonar arduino, Box - box controlling arduino
-# returns serial connection
-def connect():
-	arduinos = serial_ports()
-	print(arduinos)
-	ser = []
-	top, bot = 0, 0
-	for i in range(len(arduinos)):
-		ser.append(serial.Serial(arduinos[i], 115200))
-		time.sleep(1)
-		ser[i].write("3".encode())
-		# time.sleep(0.1)
-		types = ser[i].readline().strip().decode("utf-8")
-		print(types)
-		if types == "1":
-			bot = ser[i]
-		elif types == "0":
-			top = ser[i]
-	return bot, top
+def recognize_face():
+	while True:
+		# ret, frame = cap.read()
+		frame = cv2.imread("1.png")
+		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+		try:
+			number = len(faces)
+			size = [faces[0][2], faces[0][3]]
+			position = [faces[0][0], faces[0][1]]
+			if size[0] < 110:
+				number = 0
+			break
+		except:
+			a = 1
 
+	return size, position, number
 
-connect()
+print(recognize_face())

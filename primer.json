@@ -1,0 +1,53 @@
+{
+  "id": 123123123,
+  "ID": "2.2",
+  "theme": "1",
+	"logo": "static/image/logo.png",
+  "map": [
+    {
+      "number": "1",
+      "ID": "2.2.1"
+    },
+    {
+      "number": "2",
+      "ID": "2.2.2"
+    }
+  ],
+  "content": [
+    {
+      "type": "1",
+      "title": "Новые клиенты за сегодня",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, at!",
+			"video": "static/video/"
+    },
+    {
+      "type": "2",
+      "title": "Новые клиенты за сегодня",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, at!",
+			"video": "static/video/"
+    }
+  ],
+  "dochki": [
+    {
+      "title": "Первая кнопка",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, attest2!",
+			"ID": "2.2.1"
+    },
+    {
+      "title": "Вторая кнопка",
+			"img": "static/image/bg.jpg",
+			"text": "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Fugit, attest2!",
+			"ID": "2.2.2"
+    }
+  ],
+  "roditeli": [
+    {
+      "title": "Первая кнопка",
+			"ID": "2"
+    }
+  ]
+
+}

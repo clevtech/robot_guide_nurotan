@@ -43,7 +43,7 @@ def serial_ports():
 def connect():
 	arduinos = serial_ports()
 	ser = []
-	top, bot = 0, 0
+	bot = 0
 	for i in range(len(arduinos)):
 		ser.append(serial.Serial(arduinos[i], 115200))
 		time.sleep(1)
@@ -53,12 +53,10 @@ def connect():
 		print(types)
 		if types == "1":
 			bot = ser[i]
-		elif types == "0":
-			top = ser[i]
-	return bot, top
+	return bot
 
 
-bot, top = connect()
+bot = connect()
 async_mode = None
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'blabla'
@@ -92,7 +90,8 @@ def handdown(message="2", ard=bot, hand="r"):
 
 def recognize_face():
 	while True:
-		ret, frame = cap.read()
+		# ret, frame = cap.read()
+		frame = cv2.imread("1.png")
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 		try:
