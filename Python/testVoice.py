@@ -24,14 +24,15 @@ import urllib.request
 
 r = sr.Recognizer()
 
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
+# for index, name in enumerate(sr.Microphone.list_microphone_names()):
+#     print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 while 1:
 	with sr.Microphone(device_index=2) as source:
+		print("Started: ")
 		# r.adjust_for_ambient_noise(source)
-		duration = 1  # second
-		freq = 440  # Hz
+		# duration = 1  # second
+		# freq = 440  # Hz
 		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 		# os.system('say "Слушаю"')
 		audio = r.listen(source)
