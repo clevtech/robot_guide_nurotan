@@ -28,7 +28,7 @@ for index, name in enumerate(sr.Microphone.list_microphone_names()):
     print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 while 1:
-	with sr.Microphone(device_index=0) as source:
+	with sr.Microphone() as source:
 		# r.adjust_for_ambient_noise(source)
 		duration = 1  # second
 		freq = 440  # Hz
