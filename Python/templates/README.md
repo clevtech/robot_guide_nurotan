@@ -1,4 +1,5 @@
 ## IP = 192.168.8.105:7777/mic/  
+## IP2 = 192.168.8.105:7777/mic/{output value}
 
 JS reads the return value from mic:
 1. If value is 0
@@ -57,8 +58,8 @@ var HttpClient = function() {
                 aCallback(anHttpRequest.responseText);
         }
 
-        anHttpRequest.open( "GET", aUrl, true );            
-        anHttpRequest.send( X );
+        anHttpRequest.open( "GET", aUrl + "/" + output_text, true );            
+        anHttpRequest.send( null );
         // X is text value
     }
 }
