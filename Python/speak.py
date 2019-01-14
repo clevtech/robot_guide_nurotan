@@ -1,74 +1,74 @@
 #!/usr/bin/env python3
-import gevent.monkey
-gevent.monkey.patch_all()
-from threading import Lock
-from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit, join_room, leave_room, \
-	close_room, rooms, disconnect
-import random
+from flask import Flask, render_template
 import apiai
 import json
 import cv2
 import os
-import speech_recognition as sr
 from googletrans import Translator
 from pprint import pprint
 from gtts import gTTS
-import os
 import sys
 import glob
 import serial
 import time
-import urllib.request
+from langdetect import detect
+import threading
+from threading import Lock, Thread
+import time
 
 
-def serial_ports():
-	if sys.platform.startswith('win'):
-		ports = ['COM%s' % (i + 1) for i in range(256)]
-	elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
-		# this excludes your current terminal "/dev/tty"
-		ports = glob.glob('/dev/ttyACM*')
-		print(ports)
-	elif sys.platform.startswith('darwin'):
-		ports = glob.glob('/dev/tty.usbmodem*')
-	else:
-		raise EnvironmentError('Unsupported platform')
+# Classes
 
-	result = ports
-	return result
+class arduino():
+	def __init__(self, name="1"):
+		self.ser = self.connect(name)
+	def connect(self, name="1"):
+		arduinos = self.serial_ports()
+		ser = []
+		bot = 0
+		for i in range(len(arduinos)):
+			ser.append(serial.Serial(arduinos[i], 9600))
+			time.sleep(1)
+			ser[i].write("3".encode())
+			# time.sleep(0.1)
+			types = ser[i].readline().strip().decode("utf-8")
+			print(types)
+			if types == "1":
+				bot = ser[i]
+		return bot
+	def serial_ports(self):
+		if sys.platform.startswith('win'):
+			ports = ['COM%s' % (i + 1) for i in range(256)]
+		elif sys.platform.startswith('linux') or sys.platform.startswith('cygwin'):
+			# this excludes your current terminal "/dev/tty"
+			ports = glob.glob('/dev/ttyACM*')
+			print(ports)
+		elif sys.platform.startswith('darwin'):
+			ports = glob.glob('/dev/tty.usbmodem*')
+		else:
+			raise EnvironmentError('Unsupported platform')
+		result = ports
+		return result
 
 
-# types: Sonar - sonar arduino, Box - box controlling arduino
-# returns serial connection
-def connect():
-	arduinos = serial_ports()
-	ser = []
-	bot = 0
-	for i in range(len(arduinos)):
-		ser.append(serial.Serial(arduinos[i], 9600))
-		time.sleep(1)
-		ser[i].write("3".encode())
-		# time.sleep(0.1)
-		types = ser[i].readline().strip().decode("utf-8")
-		print(types)
-		if types == "1":
-			bot = ser[i]
-	return bot
+# Global variables
+state = 0
+run = 0
+raz = 0
+emotion = "happy"
+ard = arduino()
+bot = ard.ser
 
-
-bot = connect()
-async_mode = None
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'blabla'
-socketio = SocketIO(app, async_mode=async_mode)
-thread = None
-thread_lock = Lock()
-r = sr.Recognizer()
+
 translator = Translator()
 # Initialize OpenCV
 face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+cap = cv2.VideoCapture(0)
 
+lock = Lock()
 
+# Functions
 def handup(message="0", ard=bot, hand="r"):
 	if hand=="l":
 		message="1"
@@ -87,24 +87,28 @@ def handdown(message="2", ard=bot, hand="r"):
 
 def recognize_face():
 	while True:
-		# ret, frame = cap.read()
-		os.system("rm 1.png")
-		os.system("fswebcam 1.png")
-		frame = cv2.imread("1.png")
-		os.system("rm 1.png")
+		ret, frame = cap.read()
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 		try:
 			number = len(faces)
+			if number == 0:
+				return 0
 			size = [faces[0][2], faces[0][3]]
-			position = [faces[0][0], faces[0][1]]
 			if size[0] < 110:
 				number = 0
 			break
 		except:
-			a = 1
+			pass
+	return number
 
-	return size, position, number
+
+def say_answer(answer, lang1="ru"):
+	tts = gTTS(text=answer, lang=lang1)
+	tts.save("good.mp3")
+	os.system("mpg321 good.mp3")
+	os.system("rm good.mp3")
+
 
 
 def give_answer(question):
@@ -130,113 +134,145 @@ def give_answer(question):
 	return answer, emotion
 
 
-def listen_question(state, lang):
-	with sr.Microphone(device_index=0) as source:
-		# r.adjust_for_ambient_noise(source)
-		duration = 1  # second
-		freq = 440  # Hz
-		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
-		# os.system('say "Слушаю"')
-		audio = r.listen(source)
-		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
-		# os.system('say "Думаю"')
-		try:
-			if state == 0:
-				en = r.recognize_google(audio, language = "en-US")
-				ru = r.recognize_google(audio, language = "ru-RU")
-				print("Google Speech Recognition thinks you said in English: -  " + en)
-				print("Google Speech Recognition thinks you said in Russian: -  " + ru)
-				if en == "hello":
-					lang = "en"
-					question = en
-				else:
-					lang = "ru"
-					question = ru
-			else:
-				if lang == "en":
-					question = r.recognize_google(audio, language = "en-US")
-				else:
-					question = r.recognize_google(audio, language = "ru-RU")
-			return question, lang
-		except sr.UnknownValueError:
-			print("Google Speech Recognition could not understand audio")
-			return 1, lang
-		except sr.RequestError as e:
-			print("Could not request results from Google Speech Recognition service; {0}".format(e))
-			return 2, lang
+# Threads
+class search_faces(threading.Thread):
+	def __init__(self, threadID):
+		threading.Thread.__init__(self)
+		self.threadID = threadID
+		self.face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+		self.cap = cv2.VideoCapture(0)
+	def run(self):
+		while 1:
+			global number
+			time.sleep(1)
+			lock.acquire()
+			number = recognize_face()
+			print("Number is: " + str(number))
+			try:
+				lock.release()
+			except:
+				pass
 
 
+main_thread = search_faces(1)
+main_thread.start()
 
-def show_emotion(emotion):
-	print(emotion)
-	src = "/static/" + emotion.lower() + ".png"
-	socketio.emit('my_response',
-				  {'src': src},
-				  namespace='/test')
-
-
-def say_answer(answer, lang1="ru"):
-	tts = gTTS(text='Good morning', lang=lang1)
-	tts.save("good.mp3")
-	os.system("mpg321 good.mp3")
-	os.system("rm good.mp3")
-
-
-def speak():
-	# 1 = dialogues, 2 - fair, 3 - go to position A, 4 - go charge
-	emotions = ["Angry", "Happy", "Normal", "Sexy", "Suprised", "Thinking"]
-	lang = "ru"
-	while True:
-		show_emotion("Normal")
-		size, position, number = recognize_face()
-		handdown()
+# Flask routes
+@app.route('/mic/')
+def ekrany():
+	global state
+	global emotion
+	global run
+	global raz
+	lock.acquire()
+	if run == 1:
+		print("Entered run")
 		if number > 0:
-			handup()
-			open_phrase = "Для русского языка скажите привет"
-			say_answer(open_phrase)
-			say_answer("english say hello", "en")
+			print("SMB is here")
+			state = 1
+			run = 0
+		else:
+			print("Nobody")
+			raz = 0
 			state = 0
-			while True:
-				question, lang = listen_question(state, lang)
-				if question != 1 and question != 2:
-					if lang == "en":
-						question = translator.translate(question, dest='ru', src='en').text
-					answer, emotion = give_answer(question)
-					show_emotion(emotion)
-					if lang == "en":
-						answer = translator.translate(answer, dest='en', src='ru').text
-						say_answer(answer, "en")
-					else:
-						say_answer(answer)
-					state = 1
-					size, position, number = recognize_face()
-					if number < 1:
-						break
-				elif question == 1:
-					size, position, number = recognize_face()
-					if number < 1:
-						break
-					else:
-						if lang == "en":
-							say_answer("I cannot hear you. Louder, please.", "en")
-						else:
-							say_answer("Повторите, пожалуйста, Вас не слышно.")
-				else:
-					say_answer("Я поломалась. Мне надо на ремонт.")
+			run = 1
+			pic = "0" + emotion + ".png"
+			try:
+				lock.release()
+			except:
+				pass
+			return pic
+		pic = str(state) + emotion + ".png"
+		state = 0
+		if raz == 0:
+			raz = 1
+			say_answer("Спрашивайте, пожалуйста")
+		try:
+			lock.release()
+		except:
+			pass
+		return pic
+	else:
+		print("No run")
+		if number > 0:
+			run = 1
+		try:
+			lock.release()
+		except:
+			pass
+		return "ok"
 
 
-@socketio.on('connect', namespace='/test')
-def test_connect():
-	global thread
-	with thread_lock:
-		if thread is None:
-			thread = socketio.start_background_task(target=speak)
+
+@app.route('/mic/<text>/') # Вывод на экраны
+def ekrany2(text):
+	global state
+	global emotion
+	global run
+	global number
+	global raz
+	lock.acquire()
+	if text[0] == "!":
+		number = recognize_face()
+		if number < 1:
+			raz = 0
+			run = 1
+			try:
+				lock.release()
+			except:
+				pass
+			return "ok"
+		else:
+			say_answer("Повторите, пожалуйста, Вас не слышно.")
+			state = 1
+			emotion = "thinking"
+			try:
+				lock.release()
+			except:
+				pass
+			return "ok"
+	lang = detect(text)
+	if lang == "en":
+		text = translator.translate(text, dest='ru', src='en').text
+	answer, emotion = give_answer(text)
+	if lang == "en":
+		answer = translator.translate(answer, dest='en', src='ru').text
+		try:
+			lock.release()
+		except:
+			pass
+		say_answer(answer, "en")
+	else:
+		try:
+			lock.release()
+		except:
+			pass
+		say_answer(answer)
+	if number < 1:
+		print("Человек ушел")
+		run = 1
+		raz = 0
+		try:
+			lock.release()
+		except:
+			pass
+	try:
+		lock.release()
+	except:
+		pass
+	return "ok"
 
 
 @app.route('/')
 def index():
-	return render_template('index.html', async_mode=socketio.async_mode)
+	# main_thread.start()
+	global run
+	lock.acquire()
+	run = 1
+	lock.release()
+	return render_template('index.html')
 
 
+# Main
 if __name__ == '__main__':
-	socketio.run(app, host="0.0.0.0", port=7777, debug=True)
+	app.run(host='0.0.0.0', port=7777, debug=True, ssl_context='adhoc')

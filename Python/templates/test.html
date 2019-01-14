@@ -1,50 +1,126 @@
-<!DOCTYPE HTML>
+
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Brain Patch: Doggy Game</title>
-    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
-    <script type="text/javascript" charset="utf-8">
-          var socket = io.connect('http://' + document.domain + ':' + location.port + '/bla');
-          socket.on('message', (msg) => {
-            console.log("Input: ");
-            console.log(msg);
-          }
-            );
-          socket.on('connect', alo() );
 
-        function alo(){
-          console.log("Connected");
-          socket.send("None");
-        }
-
-        function hear(){
-          if (window.hasOwnProperty('webkitSpeechRecognition')) {
-            var recognition = new webkitSpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            // recognition.lang = "English";
-            recognition.start();
-            console.log("Started");
-            recognition.onresult = function(e) {
-              console.log("Result: ");
-              console.log(e.results[0][0].transcript);
-              recognition.stop();
-              socket.emit('my event', e.results[0][0].transcript);
-              console.log("Stopped");
-            };
-            recognition.onerror = function(e) {
-              recognition.stop();
-              console.log(e);
-              socket.emit('my event', "None");
-              console.log("Stopped");
-            }
-          }
-        }
-    </script>
+  <h1>Speech Recognition</h1>
 </head>
 <body>
-  Hello
-    <div id="value"></div>
-    <div id="time"></div>
-</body>
+
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.1/css/font-awesome.min.css" />
+  <style type="text/css">
+    body{
+      font-family: verdana;
+    }
+    #result{
+      height: 200px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      box-shadow: 0 0 10px 0 #bbb;
+      margin-bottom: 30px;
+      font-size: 14px;
+      line-height: 25px;
+    }
+    button{
+      font-size: 20px;
+      position: absolute;
+      top: 240px;
+      left: 50%;
+    }
+  </style>
+  <script>
+    let speech_result;
+    console.log("/mic/");
+    let aurl = "/mic/";
+    console.log(aurl);
+
+  function httpGet(){
+    $.ajax({
+          type: "get",
+          url: aurl,
+          success: function (data) {
+              if (data[0] == '1'){
+                hear();
+                change_it(data);
+                setTimeout(httpGet, 3000);
+              }
+              if (data[0] == '0'){
+                change_it(data);
+                setTimeout(httpGet, 500);
+              }
+              // do something with server response data
+          },
+            error: function (err) {
+              console.log(err);// handle your error logic here
+          }
+    })
+  }
+  function change_it(srcs){
+    var newImg = new Image();
+    var oldImg = document.getElementById('face');
+    oldImg = document.getElementById('face');
+    newImg.src = '/static/' + srcs;
+    newImg.id = 'face';
+    oldImg.parentNode.replaceChild(newImg, oldImg);
+  }
+
+  function hear(){
+              if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                var recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = false;
+                // recognition.lang = "English";
+                recognition.start();
+                console.log("Started");
+                recognition.onresult = function(e) {
+
+                  console.log("Result: ");
+                  console.log(e.results[0][0].transcript);
+                  recognition.stop();
+                  $.ajax({
+                    type: "get",
+                    url: aurl + e.results[0][0].transcript + "/",
+                    crossDomain: true,
+                    success: function (receivedResult) {
+                      console.log(receivedResult);
+                        // do something with server response data
+                    },
+                    complete: function() {
+                        // schedule the next request *only* when the current one is complete:
+                        setTimeout(httpGet, 500);
+                      },
+                      error: function (err) {
+                        // handle your error logic here
+                    }
+                  })
+                  // SEND IT TO IP e.results[0][0].transcript
+                  console.log("Stopped");
+                };
+
+                recognition.onerror = function(e) {
+                  recognition.stop();
+                  console.log(e);
+                  // SEND IT TO IP
+                  console.log("Stopped");
+                }
+
+              }
+            }
+  </script>
+  <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.3.1.min.js"></script>
+  <script>
+  setTimeout(httpGet, 500);
+  </script>
+  <style>
+    body {background-color: black;}
+    .bg
+        {
+          width: 100%;
+          z-index: 0;
+        }
+  </style>
+  </head>
+  <body>
+    <img id="face" class="bg" src="/static/0happy.png" />
+  </body>
 </html>

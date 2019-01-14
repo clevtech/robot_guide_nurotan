@@ -31,15 +31,25 @@ from pymongo import MongoClient
 async_mode = None
 app = Flask(__name__)
 
+i = 0
+
 @app.route('/mic/') # Вывод на экраны
 def ekrany():
-	return "1"
+	global i
+	if i == 0:
+		i = 2
+		return "1sexy.png"
+	else:
+		return "0sexy.png"
 
-@app.route('/mic/<text>') # Вывод на экраны
+@app.route('/mic/<text>/') # Вывод на экраны
 def ekrany2(text):
 	print(text)
 	return "1"
 
+@app.route('/') # Вывод на экраны
+def ekrany3():
+	return render_template('test.html')
 
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=7777)
+	app.run(host='0.0.0.0', port=7777, debug=True, ssl_context='adhoc')
