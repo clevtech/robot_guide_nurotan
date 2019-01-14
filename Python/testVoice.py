@@ -30,11 +30,12 @@ for index, name in enumerate(sr.Microphone.list_microphone_names()):
 while 1:
 	with sr.Microphone(device_index=2) as source:
 		print("Started: ")
-		# r.adjust_for_ambient_noise(source)
+		r.adjust_for_ambient_noise(source)
 		# duration = 1  # second
 		# freq = 440  # Hz
 		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 		# os.system('say "Слушаю"')
 		audio = r.listen(source)
+		print("Listened")
 		en = r.recognize_google(audio, language = "en-US")
 		print(en)
