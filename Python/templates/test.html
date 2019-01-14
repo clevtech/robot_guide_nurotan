@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Brain Patch: Doggy Game</title>
+    <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script type="text/javascript" charset="utf-8">
+          var socket = io.connect('http://' + document.domain + ':' + location.port + '/bla');
+          socket.on('message', (msg) => {
+            console.log("Input: ");
+            console.log(msg);
+          }
+            );
+          socket.on('connect', alo() );
+
+        function alo(){
+          console.log("Connected");
+          socket.send("None");
+        }
+
+        function hear(){
+          if (window.hasOwnProperty('webkitSpeechRecognition')) {
+            var recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            // recognition.lang = "English";
+            recognition.start();
+            console.log("Started");
+            recognition.onresult = function(e) {
+              console.log("Result: ");
+              console.log(e.results[0][0].transcript);
+              recognition.stop();
+              socket.emit('my event', e.results[0][0].transcript);
+              console.log("Stopped");
+            };
+            recognition.onerror = function(e) {
+              recognition.stop();
+              console.log(e);
+              socket.emit('my event', "None");
+              console.log("Stopped");
+            }
+          }
+        }
+    </script>
+</head>
+<body>
+  Hello
+    <div id="value"></div>
+    <div id="time"></div>
+</body>
+</html>

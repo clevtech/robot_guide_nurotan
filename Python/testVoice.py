@@ -22,29 +22,15 @@ import time
 import urllib.request
 
 
-# Initialize OpenCV
-# cap = cv2.VideoCapture(0)
-# cap.set(3, 640) #WIDTH
-# cap.set(4, 480) #HEIGHT
-face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
+r = sr.Recognizer()
 
-
-def recognize_face():
-	while True:
-		# ret, frame = cap.read()
-		frame = cv2.imread("1.png")
-		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-		faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-		try:
-			number = len(faces)
-			size = [faces[0][2], faces[0][3]]
-			position = [faces[0][0], faces[0][1]]
-			if size[0] < 110:
-				number = 0
-			break
-		except:
-			a = 1
-
-	return size, position, number
-
-print(recognize_face())
+while 1:
+	with sr.Microphone(device_index=0) as source:
+		# r.adjust_for_ambient_noise(source)
+		duration = 1  # second
+		freq = 440  # Hz
+		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
+		# os.system('say "Слушаю"')
+		audio = r.listen(source)
+		en = r.recognize_google(audio, language = "en-US")
+		print(en)
