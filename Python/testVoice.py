@@ -28,7 +28,7 @@ r = sr.Recognizer()
 #     print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
 
 while 1:
-	with sr.Microphone(device_index=2) as source:
+	with sr.Microphone(device_index=3) as source:
 		print("Started: ")
 		# r.adjust_for_ambient_noise(source)
 		# duration = 1  # second
