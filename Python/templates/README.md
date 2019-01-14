@@ -1,11 +1,11 @@
-IP = 192.168.8.105:7777/mic/  
+## IP = 192.168.8.105:7777/mic/  
 
 JS reads the return value from mic:
 1. If value is 0
 2. Elif value is 1:
 Do recognition!  
 
-`
+```
 function hear(){
   if (window.hasOwnProperty('webkitSpeechRecognition')) {
     var recognition = new webkitSpeechRecognition();
@@ -29,10 +29,10 @@ function hear(){
     }
   }
 }
-`
-GET:  
+```
+## GET:  
 
-`
+```
 var HttpClient = function() {
     this.get = function(aUrl, aCallback) {
         var anHttpRequest = new XMLHttpRequest();
@@ -45,10 +45,10 @@ var HttpClient = function() {
         anHttpRequest.send( null );
     }
 }
-`
+```
 
-POST:  
-`
+## POST:  
+```
 var HttpClient = function() {
     this.get = function(aUrl, aCallback) {
         var anHttpRequest = new XMLHttpRequest();
@@ -62,10 +62,10 @@ var HttpClient = function() {
         // X is text value
     }
 }
-`
+```
 
-How to use:  
-`
+## How to use:  
+```
 var client = new HttpClient();
 client.get('http://some/thing?with=arguments', function(response) {
     // do something with response
