@@ -22,20 +22,39 @@ import time
 import urllib.request
 
 
-r = sr.Recognizer()
+async_mode = None
+app = Flask(__name__)
 
-for index, name in enumerate(sr.Microphone.list_microphone_names()):
-    print("Microphone with name \"{1}\" found for `Microphone(device_index={0})`".format(index, name))
+nums = random.random()
 
-while 1:
-	with sr.Microphone(device_index=2) as source:
-		print("Started: ")
-		r.adjust_for_ambient_noise(source)
-		# duration = 1  # second
-		# freq = 440  # Hz
-		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
-		# os.system('say "Слушаю"')
-		audio = r.listen(source, phrase_time_limit=5)
-		print("Listened")
-		en = r.recognize_google(audio, language = "en-US")
-		print(en)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app, async_mode=async_mode)
+thread = None
+thread_lock = Lock()
+
+
+## Socket
+@socketio.on('message', namespace="/bla") # Принимать сигналы и отправлять
+def handle_my_custom_namespace_event():
+	print("Sent")
+	socketio.sleep(0.1)
+	socketio.send("1", namespace="/type")
+
+	# socketio.sleep(0.1)
+
+@socketio.on('my event', namespace="/bla") # Принимать сигналы и отправлять
+def handle_message(json1):
+	print("Input is: ")
+	print(json1)
+
+
+## Render
+@app.route('/') # Вывод на планшеты
+def tablet():
+	# return render_template('index.html', async_mode=socketio.async_mode, ip=ip)
+	return render_template('test.html', async_mode=socketio.async_mode)
+
+
+
+if __name__ == '__main__':
+	socketio.run(app, host='0.0.0.0', port=8888, debug=True)
