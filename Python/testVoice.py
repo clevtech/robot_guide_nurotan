@@ -35,7 +35,7 @@ while 1:
 		# freq = 440  # Hz
 		# os.system('play --no-show-progress --null --channels 1 synth %s sine %f' % (duration, freq))
 		# os.system('say "Слушаю"')
-		audio = r.listen(source)
+		audio = r.listen(source, phrase_time_limit=5)
 		print("Listened")
 		en = r.recognize_google(audio, language = "en-US")
 		print(en)
