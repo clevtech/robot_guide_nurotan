@@ -154,14 +154,14 @@ class search_faces(threading.Thread):
 				pass
 
 
-main_thread = search_faces(1)
-main_thread.start()
+# main_thread = search_faces(1)
+# main_thread.start()
 
 # Flask routes
 @app.route('/mic/')
 def ekrany():
-    return "0happy.png"
-	
+	return "0happy.png"
+
 
 @app.route('/mic/<text>/') # Вывод на экраны
 def ekrany2(text):
