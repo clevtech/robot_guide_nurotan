@@ -56,8 +56,8 @@ state = 0
 run = 0
 raz = 0
 emotion = "happy"
-ard = arduino()
-bot = ard.ser
+# ard = arduino()
+# bot = ard.ser
 
 app = Flask(__name__)
 
