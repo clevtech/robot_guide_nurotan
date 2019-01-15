@@ -161,49 +161,7 @@ main_thread.start()
 @app.route('/mic/')
 def ekrany():
     return "0happy.png"
-	global state
-	global emotion
-	global run
-	global raz
-	lock.acquire()
-	if run == 1:
-		print("Entered run")
-		if number > 0:
-			print("SMB is here")
-			state = 1
-			run = 0
-		else:
-			print("Nobody")
-			raz = 0
-			state = 0
-			run = 1
-			pic = "0" + emotion + ".png"
-			try:
-				lock.release()
-			except:
-				pass
-			return pic
-		pic = str(state) + emotion + ".png"
-		state = 0
-		if raz == 0:
-			raz = 1
-			say_answer("Спрашивайте, пожалуйста")
-		try:
-			lock.release()
-		except:
-			pass
-		return pic
-	else:
-		print("No run")
-		if number > 0:
-			run = 1
-		try:
-			lock.release()
-		except:
-			pass
-		return "ok"
-
-
+	
 
 @app.route('/mic/<text>/') # Вывод на экраны
 def ekrany2(text):
