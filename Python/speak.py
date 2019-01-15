@@ -69,21 +69,21 @@ cap = cv2.VideoCapture(0)
 lock = Lock()
 
 # Functions
-def handup(message="0", ard=bot, hand="r"):
-	if hand=="l":
-		message="1"
-	ard.write(message.encode())
-	out = ard.readline().strip().decode("utf-8")
-	return out
-
-
-def handdown(message="2", ard=bot, hand="r"):
-	if hand=="l":
-		message="4"
-	ard.write(message.encode())
-	out = ard.readline().strip().decode("utf-8")
-	return out
-
+# def handup(message="0", ard=bot, hand="r"):
+# 	if hand=="l":
+# 		message="1"
+# 	ard.write(message.encode())
+# 	out = ard.readline().strip().decode("utf-8")
+# 	return out
+#
+#
+# def handdown(message="2", ard=bot, hand="r"):
+# 	if hand=="l":
+# 		message="4"
+# 	ard.write(message.encode())
+# 	out = ard.readline().strip().decode("utf-8")
+# 	return out
+#
 
 def recognize_face():
 	while True:
