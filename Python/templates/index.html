@@ -32,27 +32,10 @@
     let aurl = "/mic/";
     console.log(aurl);
 
-  function httpGet(){
-    $.ajax({
-          type: "get",
-          url: aurl,
-          success: function (data) {
-              if (data[0] == '1'){
-                hear();
-                change_it(data);
-                setTimeout(httpGet, 3000);
-              }
-              if (data[0] == '0'){
-                change_it(data);
-                setTimeout(httpGet, 500);
-              }
-              // do something with server response data
-          },
-            error: function (err) {
-              console.log(err);// handle your error logic here
-          }
-    })
-  }
+    $('document').ready(function() {
+          hear();
+          change_it(data);
+    });
   function change_it(srcs){
     var newImg = new Image();
     var oldImg = document.getElementById('face');
@@ -83,11 +66,12 @@
                     crossDomain: true,
                     success: function (receivedResult) {
                       console.log(receivedResult);
+
                         // do something with server response data
                     },
                     complete: function() {
                         // schedule the next request *only* when the current one is complete:
-                        setTimeout(httpGet, 500);
+                        location.reload(forceGet);
                       },
                       error: function (err) {
                         // handle your error logic here
@@ -138,7 +122,7 @@
   </head>
   <body>
     <div id="all">
-    <img id="face" class="bg" src="/static/0happy.png" />
+    <img id="face" class="bg" src="{{emo}}" />
   </div>
   </body>
 </html>
