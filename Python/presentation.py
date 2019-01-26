@@ -1,23 +1,30 @@
 #!/usr/bin/env python3
 from flask import Flask, render_template
-import apiai
-import json
-import cv2
-import os
-from googletrans import Translator
-from pprint import pprint
-from gtts import gTTS
-import sys
-import glob
-import serial
-import time
-from langdetect import detect
-import threading
-from threading import Lock, Thread
-import time
+from flask_socketio import SocketIO, send
 
+import apiai
+import json # + (part of the dialog part)
+#import cv2 (unnecessary)
+import os # + (part of the dialog part)
+#from googletrans import Translator
+from pprint import pprint # + (part of the dialog part)
+from gtts import gTTS # + (main library of the dialog part)
+import sys # + (part of Arduino library)
+#import glob # + (part of the Arduino part)
+#import serial # + (part of the Arduino part)
+#import time # + (part of the Arduino part)
+from langdetect import detect # ? (language detection, do we need translation)
+#import threading # (unnecessary)
+#from threading import Lock, Thread # (unnecessary)
+#import time # ? (why do we import it two times?)
+
+'''
 
 # Classes
+
+###################################
+#Arduino initialization (necessary)
+###################################
 
 class arduino():
 	def __init__(self, name="1"):
@@ -27,7 +34,7 @@ class arduino():
 		ser = []
 		bot = 0
 		for i in range(len(arduinos)):
-			ser.append(serial.Serial(arduinos[i], 9600))
+			ser.append(serial.Serial(arduinos[i], 115200))
 			time.sleep(1)
 			ser[i].write("3".encode())
 			# time.sleep(0.1)
@@ -50,7 +57,7 @@ class arduino():
 		result = ports
 		return result
 
-
+translator
 # Global variables
 state = 0
 run = 0
@@ -59,7 +66,16 @@ emotion = "happy"
 # ard = arduino()
 # bot = ard.ser
 
+'''
+
+###################################
+#Flask initialization
+###################################
+
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'noSecretJustEasternEgg!'
+
+'''
 
 translator = Translator()
 # Initialize OpenCV
@@ -67,6 +83,10 @@ face_cascade = cv2.CascadeClassifier('haarcascade_frontalface_default.xml')
 cap = cv2.VideoCapture(0)
 
 lock = Lock()
+
+############################
+#Sending commmands to arduino to control the hands (unnecessary)
+############################
 
 # Functions
 # def handup(message="0", ard=bot, hand="r"):
@@ -85,6 +105,10 @@ lock = Lock()
 # 	return out
 #
 
+###################################
+$Face recognition (unnecessary)
+###################################
+
 def recognize_face():
 	while True:
 		ret, frame = cap.read()
@@ -102,6 +126,11 @@ def recognize_face():
 			pass
 	return number
 
+'''
+
+###################################
+#Answering the people using library (needed)
+###################################
 
 def say_answer(answer, lang1="ru"):
 	tts = gTTS(text=answer, lang=lang1)
@@ -109,7 +138,9 @@ def say_answer(answer, lang1="ru"):
 	os.system("mpg321 good.mp3")
 	os.system("rm good.mp3")
 
-
+###################################
+#Questioning people based on the aswers
+###################################
 
 def give_answer(question):
 	print("Question: ")
@@ -133,6 +164,10 @@ def give_answer(question):
 		emotion = "Thinking"
 	return answer, emotion
 
+'''
+###################################
+#Part of the face detection
+###################################
 
 # Threads
 class search_faces(threading.Thread):
@@ -158,10 +193,19 @@ class search_faces(threading.Thread):
 # main_thread.start()
 
 # Flask routes
+
+###################################
+#Sending face emotion to FE (front-end)
+###################################
+
 @app.route('/mic/')
 def ekrany():
 	return "0happy.png"
 
+
+###################################
+#Part of the face recognition system (must be rewritten)
+###################################
 
 @app.route('/mic/<text>/') # Вывод на экраны
 def ekrany2(text):
@@ -221,17 +265,65 @@ def ekrany2(text):
 		pass
 	return "ok"
 
+'''
+
+###################################
+#Index html initialization
+###################################
+
 
 @app.route('/')
 def index():
 	# main_thread.start()
-	global run
-	lock.acquire()
-	run = 1
-	lock.release()
-	return render_template('index.html')
+	return render_template('beka.html')
 
+'''
+
+###################################
+#Start of the SocketIO functionВывод на экраны
+def ekrany2(text):
+	global state
+	global emotion
+	global run
+	global number
+	global raz
+	lock.acquire()
+	if text[0] == "!":
+###################################normal
+
+'''
+
+socketio = SocketIO(app)
+
+def arduinoListen():
+	person = input('Is there a person?: ')
+	print(person)
+	return person
+
+@socketio.on('hasConnected')
+def handleMessage(message):
+	print(message)
+	person = '0'
+	while (person == '0'):
+		person = arduinoListen()
+	socketio.emit('someoneApproached')
+
+@socketio.on('initialFace')
+def handlePerson():
+	socketio.emit('message', 'Happy')
+
+@socketio.on("chat message")
+def handleChatMessage(message):
+	print('Received chat message is: ' + message)
+	if (message == 'no-speech'):
+		socketio.emit('noSpeech', 'Normal')
+	else:
+		answer, emotion = give_answer(message)
+		print("answer: " + answer)
+		print("emotion: " + emotion)
+		socketio.emit('message', emotion)
 
 # Main
 if __name__ == '__main__':
-	app.run(host='0.0.0.0', port=7777, debug=True, ssl_context='adhoc')
+	#app.run(host='0.0.0.0', port=7777, debug=True, ssl_context='adhoc')
+	socketio.run(app) #host='0.0.0.0', port=5000, use_reloader=True, use_debugger=False)
